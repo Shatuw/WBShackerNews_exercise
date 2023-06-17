@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Pagination from './Pagination.js';
+import Comments from './Comments.js';
 
 export default function News({search}) {
 const [news, setNews] = useState([]);
@@ -10,13 +11,14 @@ const [totalPages, setTotalPages] = useState(0);
 
 const getTheNews  = async (page) => {
   
-  const hackerNewsApi=`http://hn.algolia.com/api/v1/search?query=${search}&page=${page}&tags=story`;
+  const hackerNewsApi=`http://hn.algolia.com/api/v1/search_by_date?query=${search}&page=${page}&tags=story`;
     try{
         setIsLoading(true);
         const {data} = await axios.get(hackerNewsApi);
         setIsLoading(false);
         setNews(data.hits);
         setCurrentPage(data.page);
+        console.log(data.hits);
         
         setTotalPages(data.nbPages);
     }
@@ -44,15 +46,18 @@ return (
     news.length > 0 ?
     <>
         <Pagination currentPage={currentPage} totalPages={totalPages}  getTheNews={getTheNews}/>
-        <ul>
+        <ul className='newsSection'>
             {
-                news.map((item) => {
+                news.map((item,index) => {
                     
                     return(
-                    <li key={item.objectID}>
-                        <a href={item.url}>{item.title}</a>
-                        <p>author: {item.author}</p>
-                    </li>
+                    <a href={item.url} target="_blank" key={item.objectID}>
+                        <li >
+                            <div>{index+1}. {item.title}<br/>
+                            Author: <b>{item.author}</b> written on the {item.created_at.substr(0,10)}</div>
+                            <Comments num_comments={item.num_comments} story_id={item.objectID}/>
+                        </li>
+                    </a>
                     )
                 })
             }
